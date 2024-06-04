@@ -11,7 +11,7 @@ type HomeScreenProps = {
 export default function Home({ navigation }: HomeScreenProps): JSX.Element {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Home</Text>
+      <Text style={styles.text}>HOMEEE</Text>
       <Button title="Go to Details" onPress={() => navigation.navigate('Detail')} />
   </View>
   )
