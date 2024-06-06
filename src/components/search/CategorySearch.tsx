@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   topBar: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: '48%', // Adjust width according to your preference
+    width: '48%',
     height: 45,
     marginBottom: 4,
   },
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: 60,
-    width: '100%', // Adjust width according to your preference
+    width: '100%',
     marginTop: 16,
   },
   searchButtonText: {
