@@ -23,7 +23,7 @@ function Root(): JSX.Element {
             />
             <Tab.Screen
                 name="Search"
-                component={MovieDetail}
+                component={Search}
                 options={{
                     tabBarIcon: ({ color }) => (
                     <Feather name="search" size={28} color={color} />
