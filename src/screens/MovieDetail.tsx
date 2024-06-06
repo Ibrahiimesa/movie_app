@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, ImageBackground, StyleSheet, ScrollView, ActivityIndicator } from 'react-native'
+import { View, Text, ImageBackground, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native'
 import { API_ACCESS_TOKEN } from '@env'
 import MovieList from '../components/movies/MovieList'
 import { FontAwesome } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { MovieListProps, Movie } from '../types/app'
 
-const MovieDetail = ({ route }: any): JSX.Element => {
+
+export default function MovieDetail({ route }: any): JSX.Element {
   const { id } = route.params
   const [detailMovie, setDetailMovie] = useState<Movie | null>(null)
+  const [isFavorite, setIsFavorite] = useState<boolean>(false);
 
   useEffect(() => {
     getDetailMovie()
+    checkIsFavorite();
   }, [id])
 
   const getDetailMovie = async (): Promise<void> => {
@@ -43,6 +47,51 @@ const MovieDetail = ({ route }: any): JSX.Element => {
     coverType: 'poster',
   }
 
+  const addFavorite = async (movie: Movie): Promise<void> => {
+    try {
+      const initialData: string | null = await AsyncStorage.getItem('@FavoriteList');
+      let favMovieList: Movie[] = initialData ? JSON.parse(initialData) : [];
+      favMovieList = [...favMovieList, movie];
+      await AsyncStorage.setItem('@FavoriteList', JSON.stringify(favMovieList));
+      setIsFavorite(true);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const removeFavorite = async (id: number): Promise<void> => {
+    try {
+      const initialData: string | null = await AsyncStorage.getItem('@FavoriteList');
+      let favMovieList: Movie[] = initialData ? JSON.parse(initialData) : [];
+      favMovieList = favMovieList.filter((movie) => movie.id !== id);
+      await AsyncStorage.setItem('@FavoriteList', JSON.stringify(favMovieList));
+      setIsFavorite(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const checkIsFavorite = async (): Promise<void> => {
+    try {
+      const initialData: string | null = await AsyncStorage.getItem('@FavoriteList');
+      const favMovieList: Movie[] = initialData ? JSON.parse(initialData) : [];
+      const isFav = favMovieList.some((movie) => movie.id === id);
+      setIsFavorite(isFav);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const toggleFavorite = (): void => {
+    if (detailMovie) {
+      if (isFavorite) {
+        removeFavorite(detailMovie.id);
+      } else {
+        addFavorite(detailMovie);
+      }
+    }
+  };
+
   if (!detailMovie) {
     return (
       <View style={styles.loaderContainer}>
@@ -55,7 +104,6 @@ const MovieDetail = ({ route }: any): JSX.Element => {
     <ScrollView style={styles.container}>
       {detailMovie.backdrop_path ? (
         <ImageBackground
-          resizeMode="cover"
           source={{ uri: `https://image.tmdb.org/t/p/w500${detailMovie.backdrop_path}` }}
           style={styles.backdrop}
         >
@@ -65,13 +113,19 @@ const MovieDetail = ({ route }: any): JSX.Element => {
             style={styles.gradientStyle}
           >
           <Text style={styles.movieTitle}>{detailMovie.title}</Text>
-          <View style={styles.ratingContainer}>
-            <FontAwesome name="star" size={18} color="yellow" />
-            <Text style={styles.rating}>{detailMovie.vote_average.toFixed(1)}</Text>
+          <View style={styles.rowRatingFavoriteContainer}>
+            <View style={styles.ratingContainer}>
+              <FontAwesome name="star" size={14} color="yellow" />
+              <Text style={styles.rating}>{detailMovie.vote_average.toFixed(1)}</Text>
+             
+            </View>
+            <TouchableOpacity onPress={toggleFavorite}>
+                <FontAwesome name={isFavorite ? "heart" : "heart-o"} size={24} color="red" />
+            </TouchableOpacity>
           </View>
-      </LinearGradient>
-        </ImageBackground>
-        
+          
+        </LinearGradient>
+      </ImageBackground>
       ) : (
         <View style={styles.noImage}>
           <Text style={styles.noImageText}>No Image Available</Text>
@@ -161,6 +215,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
+  rowRatingFavoriteContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginRight: 8,
+    marginBottom: 2,
+  },
   detailsContainer: {
     padding: 10,
   },
@@ -170,7 +231,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   voteAverage: {
-    fontSize: 18,
+    fontSize: 14,
     color: '#FFD700',
     marginBottom: 10,
   },
@@ -195,5 +256,3 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 })
-
-export default MovieDetail
